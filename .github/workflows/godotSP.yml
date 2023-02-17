@@ -1,0 +1,85 @@
+name: GodotSP
+on:
+  - workflow_dispatch
+  schedule:
+    - cron: "0 12 * * *"
+  
+env:
+  BASE_BRANCH: main
+
+jobs:
+  build:
+    runs-on: ${{ matrix.runner }}
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - identifier: linux-editor (x86_64)
+            name: Linux (x86_64) - template_debug
+            runner: ubuntu-20.04
+            target: template_debug
+            platform: linux
+
+    steps:
+      - name: Checkout Godot
+        uses: actions/checkout@v3
+        with:
+          name: godotengine/godot
+          ref: master
+      - name: Checkout LuaAPI
+        uses: actions/checkout@v3
+        with:
+          name: WeaselGamnes/godot_luaAPI
+          ref: main
+          path: modules/luaAPI
+      - name: Checkout Voxel
+        uses: actions/checkout@v3
+        with:
+          name: Zylann/godot_voxel
+          ref: main
+          path: modules/voxel
+      - name: Checkout GodotSteam
+        uses: actions/checkout@v3
+        with:
+          name: Gramps/GodotSteam
+          ref: main
+          path: modules/godotsteam
+          
+      - name: Set up Python
+        uses: actions/setup-python@v2
+
+      - name: Set up SCons
+        run: |
+          python -c "import sys; print(sys.version)"
+          python -m pip install scons
+          scons --version
+      - name: Load .scons_cache directory
+        id: godotSP-cache
+        uses: actions/cache@v2
+        with:
+          path: ${{github.workspace}}/.scons_cache/
+          key: ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+          restore-keys: |
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{env.BASE_BRANCH}}
+      - name: Compile Engine
+        env:
+          BUILD_NAME: 'SP'
+        run: |
+          scons target='${{ matrix.target }}' platform='${{ matrix.platform }}' extra_suffix=SP -j2
+      - name: Prepare artifact
+        env:
+          SCONS_CACHE: ${{github.workspace}}/.scons_cache/
+          SCONS_CACHE_LIMIT: 7168
+        shell: bash
+        run: |
+          rm -rf ${{ github.workspace }}/project/.g* ${{ github.workspace }}/project/project.godot ${{ github.workspace }}/project/testing ${{ github.workspace }}/project/addons/luaAPI/bin/.gitignore
+          cp -n '${{ github.workspace }}/README.md' '${{ github.workspace }}/LICENSE' ${{ github.workspace }}/project/addons/luaAPI
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}
+          path: |
+            ${{ github.workspace }}/project/

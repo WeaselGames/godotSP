@@ -1,0 +1,154 @@
+name: Linux
+on:
+  workflow_dispatch:
+  
+  schedule:
+    - cron: "0 12 * * *"
+
+env:
+  BASE_BRANCH: master
+  SCONS_CACHE_LIMIT: 7168
+
+jobs:
+  linux-editor:
+    runs-on: "ubuntu-20.04"
+    name: Linux Editor
+    steps:
+      - name: Checkout Godot
+        uses: actions/checkout@v3
+        with:
+          name: godotengine/godot
+          ref: master
+      - name: Checkout LuaAPI
+        uses: actions/checkout@v3
+        with:
+          name: WeaselGamnes/godot_luaAPI
+          ref: main
+          path: modules/luaAPI
+      - name: Checkout Voxel
+        uses: actions/checkout@v3
+        with:
+          name: Zylann/godot_voxel
+          ref: master
+          path: modules/voxel
+      - name: Checkout GodotSteam
+        uses: actions/checkout@v3
+        with:
+          name: Gramps/GodotSteam
+          ref: master
+          path: modules/godotsteam
+
+      # Install all packages except SCons
+      - name: Configure dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential pkg-config libx11-dev libxcursor-dev \
+            libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm
+      - name: Load .scons_cache directory
+        id: linux-editor-cache
+        uses: actions/cache@v2
+        with:
+          path: ${{github.workspace}}/.scons_cache/
+          key: ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+          restore-keys: |
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}
+            ${{github.job}}-${{env.BASE_BRANCH}}
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+          architecture: "x64"
+
+      - name: Configuring Python packages
+        run: |
+          python -c "import sys; print(sys.version)"
+          python -m pip install scons
+          python --version
+          scons --version
+      - name: Compilation
+        env:
+          SCONS_CACHE: ${{github.workspace}}/.scons_cache/
+          BUILD_NAME: 'SP'
+        run: |
+          scons platform=linux target=editor extra_suffix=SP
+      - name: Prepare artifact
+        run: |
+          strip bin/godot.*
+          chmod +x bin/godot.*
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{github.job}}
+          path: bin/*
+
+  linux-templates:
+    runs-on: "ubuntu-20.04"
+    name: Linux Templates
+    steps:
+      - name: Checkout Godot
+        uses: actions/checkout@v3
+        with:
+          name: godotengine/godot
+          ref: master
+      - name: Checkout LuaAPI
+        uses: actions/checkout@v3
+        with:
+          name: WeaselGamnes/godot_luaAPI
+          ref: main
+          path: modules/luaAPI
+      - name: Checkout Voxel
+        uses: actions/checkout@v3
+        with:
+          name: Zylann/godot_voxel
+          ref: master
+          path: modules/voxel
+      - name: Checkout GodotSteam
+        uses: actions/checkout@v3
+        with:
+          name: Gramps/GodotSteam
+          ref: master
+          path: modules/godotsteam
+
+      # Install all packages except SCons
+      - name: Configure dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential pkg-config libx11-dev libxcursor-dev \
+            libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm
+      - name: Load .scons_cache directory
+        id: linux-template-cache
+        uses: actions/cache@v2
+        with:
+          path: ${{github.workspace}}/.scons_cache/
+          key: ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+          restore-keys: |
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}
+            ${{github.job}}-${{env.BASE_BRANCH}}
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+          architecture: "x64"
+
+      - name: Configuring Python packages
+        run: |
+          python -c "import sys; print(sys.version)"
+          python -m pip install scons
+          python --version
+          scons --version
+      - name: Compilation
+        env:
+          SCONS_CACHE: ${{github.workspace}}/.scons_cache/
+          BUILD_NAME: 'SP'
+        run: |
+          scons platform=linux target=template_debug extra_suffix=SP
+          scons platform=linux target=template_release extra_suffix=SP
+      - name: Prepare artifact
+        run: |
+          strip bin/godot.*
+          chmod +x bin/godot.*
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{github.job}}
+          path: bin/*

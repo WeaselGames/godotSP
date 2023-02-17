@@ -1,0 +1,141 @@
+name: Windows
+on:
+  workflow_dispatch:
+  
+  schedule:
+    - cron: "0 12 * * *"
+
+env:
+  BASE_BRANCH: master
+  SCONS_CACHE_MSVC_CONFIG: true
+  SCONS_CACHE_LIMIT: 7168
+
+jobs:
+  windows-editor:
+    runs-on: "windows-latest"
+    name: Windows Editor
+    steps:
+      - name: Checkout Godot
+        uses: actions/checkout@v3
+        with:
+          name: godotengine/godot
+          ref: master
+      - name: Checkout LuaAPI
+        uses: actions/checkout@v3
+        with:
+          name: WeaselGamnes/godot_luaAPI
+          ref: main
+          path: modules/luaAPI
+      - name: Checkout Voxel
+        uses: actions/checkout@v3
+        with:
+          name: Zylann/godot_voxel
+          ref: master
+          path: modules/voxel
+      - name: Checkout GodotSteam
+        uses: actions/checkout@v3
+        with:
+          name: Gramps/GodotSteam
+          ref: master
+          path: modules/godotsteam
+
+      - name: Load .scons_cache directory
+        id: windows-editor-cache
+        uses: RevoluPowered/cache@v2.1
+        with:
+          path: /.scons_cache/
+          key: ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+          restore-keys: |
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}
+            ${{github.job}}-${{env.BASE_BRANCH}}
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+          architecture: "x64"
+
+      - name: Configuring Python packages
+        run: |
+          python -c "import sys; print(sys.version)"
+          python -m pip install scons pywin32
+          python --version
+          scons --version
+      - name: Compilation
+        env:
+          SCONS_CACHE: /.scons_cache/
+          BUILD_NAME: 'SP'
+        run: |
+          scons platform=windows target=editor extra_suffix=SP
+      - name: Prepare artifact
+        run: |
+          Remove-Item bin/* -Include *.exp,*.lib,*.pdb -Force
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{github.job}}
+          path: bin/*
+
+  windows-templates:
+    runs-on: "windows-latest"
+    name: Windows Templates
+    steps:
+      - name: Checkout Godot
+        uses: actions/checkout@v3
+        with:
+          name: godotengine/godot
+          ref: master
+      - name: Checkout LuaAPI
+        uses: actions/checkout@v3
+        with:
+          name: WeaselGamnes/godot_luaAPI
+          ref: main
+          path: modules/luaAPI
+      - name: Checkout Voxel
+        uses: actions/checkout@v3
+        with:
+          name: Zylann/godot_voxel
+          ref: master
+          path: modules/voxel
+      - name: Checkout GodotSteam
+        uses: actions/checkout@v3
+        with:
+          name: Gramps/GodotSteam
+          ref: master
+          path: modules/godotsteam
+
+      - name: Load .scons_cache directory
+        id: windows-templates-cache
+        uses: RevoluPowered/cache@v2.1
+        with:
+          path: /.scons_cache/
+          key: ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+          restore-keys: |
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}
+            ${{github.job}}-${{env.BASE_BRANCH}}
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.x"
+          architecture: "x64"
+
+      - name: Configuring Python packages
+        run: |
+          python -c "import sys; print(sys.version)"
+          python -m pip install scons pywin32
+          python --version
+          scons --version
+      - name: Compilation
+        env:
+          SCONS_CACHE: /.scons_cache/
+          BUILD_NAME: 'SP'
+        run: |
+          scons platform=windows target=template_debug extra_suffix=SP
+          scons platform=windows target=template_release extra_suffix=SP
+      - name: Prepare artifact
+        run: |
+          Remove-Item bin/* -Include *.exp,*.lib,*.pdb -Force
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{github.job}}
+          path: bin/*
