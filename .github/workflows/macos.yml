@@ -48,9 +48,9 @@ jobs:
       - name: Checkout SteamWorks SDK
         uses: actions/checkout@v3
         with:
-          repository: ${{ secrest.steamworks_sdk_repo }}
+          repository: ${{ secrets.steamworks_sdk_repo }}
           ref: master
-          token: ${{ secrest.steamworks_sdk_repo_token }}
+          token: ${{ secrets.steamworks_sdk_repo_token }}
           path: modules/godotsteam/sdk
 
       - name: Setup Vulkan SDK
@@ -132,9 +132,9 @@ jobs:
       - name: Checkout SteamWorks SDK
         uses: actions/checkout@v3
         with:
-          repository: ${{ secrest.steamworks_sdk_repo }}
+          repository: ${{ secrets.steamworks_sdk_repo }}
           ref: master
-          token: ${{ secrest.steamworks_sdk_repo_token }}
+          token: ${{ secrets.steamworks_sdk_repo_token }}
           path: modules/godotsteam/sdk
 
       - name: Setup Vulkan SDK
