@@ -1,11 +1,10 @@
 name: Linux
 on:
-  workflow_dispatch: null
-
+  workflow_dispatch:
   push:
     branches:
       - "master"
-     paths-ignore:
+    paths-ignore:
       - "**/README.md"
   schedule:
     - cron: "0 12 * * *"
