@@ -24,7 +24,7 @@ jobs:
       - name: Checkout LuaAPI
         uses: actions/checkout@v3
         with:
-          repository: WeaselGamnes/godot_luaAPI
+          repository: WeaselGames/godot_luaAPI
           ref: main
           submodules: recursive
           path: modules/luaAPI
@@ -108,7 +108,7 @@ jobs:
       - name: Checkout LuaAPI
         uses: actions/checkout@v3
         with:
-          repository: WeaselGamnes/godot_luaAPI
+          repository: WeaselGames/godot_luaAPI
           ref: main
           submodules: recursive
           path: modules/luaAPI
