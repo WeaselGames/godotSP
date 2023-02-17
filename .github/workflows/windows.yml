@@ -1,7 +1,11 @@
 name: Windows
 on:
   workflow_dispatch:
-  
+  push:
+    branches:
+      - "master"
+     paths-ignore:
+      - "**/README.md"
   schedule:
     - cron: "0 12 * * *"
 
