@@ -46,7 +46,7 @@ jobs:
 
       - name: Delete SDK Folder
         run: |
-          Remove-Item modules/godotsteam/sdk -Force
+          Remove-Item 'modules/godotsteam/sdk' -Recurse
 
       - name: Checkout SteamWorks SDK
         uses: actions/checkout@v3
@@ -123,7 +123,7 @@ jobs:
 
       - name: Delete SDK Folder
         run: |
-          Remove-Item modules/godotsteam/sdk -Force
+          Remove-Item 'modules/godotsteam/sdk' -Recurse
 
       - name: Checkout SteamWorks SDK
         uses: actions/checkout@v3

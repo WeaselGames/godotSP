@@ -83,7 +83,6 @@ jobs:
           python --version
           scons --version
       - name: Compilation
-        working-directory: ./scripts
         env:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
           BUILD_NAME: 'SP'
@@ -92,9 +91,9 @@ jobs:
           scons platform=macos target=template_release extra_suffix=SP
       - name: Prepare artifact
         run: |
-          strip scripts/godot/bin/godot.*
-          chmod +x scripts/godot/bin/godot.*
+          strip bin/godot.*
+          chmod +x bin/godot.*
       - uses: actions/upload-artifact@v2
         with:
           name: ${{github.job}}
-          path: scripts/godot/bin
+          path: bin
