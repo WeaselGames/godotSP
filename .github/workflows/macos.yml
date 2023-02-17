@@ -19,26 +19,39 @@ jobs:
       - name: Checkout Godot
         uses: actions/checkout@v3
         with:
-          name: godotengine/godot
+          repository: godotengine/godot
           ref: master
       - name: Checkout LuaAPI
         uses: actions/checkout@v3
         with:
-          name: WeaselGamnes/godot_luaAPI
+          repository: WeaselGamnes/godot_luaAPI
           ref: main
+          submodules: recursive
           path: modules/luaAPI
       - name: Checkout Voxel
         uses: actions/checkout@v3
         with:
-          name: Zylann/godot_voxel
+          repository: Zylann/godot_voxel
           ref: master
           path: modules/voxel
       - name: Checkout GodotSteam
         uses: actions/checkout@v3
         with:
-          name: Gramps/GodotSteam
+          repository: Gramps/GodotSteam
           ref: master
           path: modules/godotsteam
+
+      - name: Delete SDK Folder
+        run: |
+          rm -rf modules/godotsteam/sdk
+
+      - name: Checkout SteamWorks SDK
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ secrest.steamworks_sdk_repo }}
+          ref: master
+          token: ${{ secrest.steamworks_sdk_repo_token }}
+          path: modules/godotsteam/sdk
 
       - name: Setup Vulkan SDK
         run: |
@@ -90,26 +103,39 @@ jobs:
       - name: Checkout Godot
         uses: actions/checkout@v3
         with:
-          name: godotengine/godot
+          repository: godotengine/godot
           ref: master
       - name: Checkout LuaAPI
         uses: actions/checkout@v3
         with:
-          name: WeaselGamnes/godot_luaAPI
+          repository: WeaselGamnes/godot_luaAPI
           ref: main
+          submodules: recursive
           path: modules/luaAPI
       - name: Checkout Voxel
         uses: actions/checkout@v3
         with:
-          name: Zylann/godot_voxel
+          repository: Zylann/godot_voxel
           ref: master
           path: modules/voxel
       - name: Checkout GodotSteam
         uses: actions/checkout@v3
         with:
-          name: Gramps/GodotSteam
+          repository: Gramps/GodotSteam
           ref: master
           path: modules/godotsteam
+
+      - name: Delete SDK Folder
+        run: |
+          rm -rf modules/godotsteam/sdk
+
+      - name: Checkout SteamWorks SDK
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ secrest.steamworks_sdk_repo }}
+          ref: master
+          token: ${{ secrest.steamworks_sdk_repo_token }}
+          path: modules/godotsteam/sdk
 
       - name: Setup Vulkan SDK
         run: |
