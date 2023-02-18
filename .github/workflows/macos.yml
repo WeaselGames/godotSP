@@ -14,10 +14,21 @@ env:
   SCONS_CACHE_LIMIT: 7168
 
 jobs:
-  macos-Templates:
+  macos-templates:
     runs-on: "macos-latest"
 
-    name: MacOS Templates
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: MacOS Template Debug
+            cache-name: macos-template-debug
+            target: template_debug
+
+          - name: MacOS Template Release
+            cache-name: macos-template-release
+            target: template_release
 
     steps:
       - name: Checkout Godot
@@ -25,6 +36,7 @@ jobs:
         with:
           repository: godotengine/godot
           ref: master
+
       - name: Checkout LuaAPI
         uses: actions/checkout@v3
         with:
@@ -32,12 +44,14 @@ jobs:
           ref: main
           submodules: recursive
           path: modules/luaAPI
+
       - name: Checkout Voxel
         uses: actions/checkout@v3
         with:
           repository: Zylann/godot_voxel
           ref: master
           path: modules/voxel
+
       - name: Checkout GodotSteam
         uses: actions/checkout@v3
         with:
@@ -52,7 +66,7 @@ jobs:
       - name: Checkout SteamWorks SDK
         uses: actions/checkout@v3
         with:
-          lfs: 'true'
+          lfs: "true"
           repository: ${{ secrets.steamworks_sdk_repo }}
           ref: master
           token: ${{ secrets.steamworks_sdk_repo_token }}
@@ -61,16 +75,17 @@ jobs:
       - name: Setup Vulkan SDK
         run: |
           sh misc/scripts/install_vulkan_sdk_macos.sh
+
       - name: Load .scons_cache directory
-        id: macos-templates-cache
         uses: actions/cache@v2
         with:
           path: ${{github.workspace}}/.scons_cache/
-          key: ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+          key: ${{matrix.cache-name}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
           restore-keys: |
-            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
-            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}
-            ${{github.job}}-${{env.BASE_BRANCH}}
+            ${{matrix.cache-name}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+            ${{matrix.cache-name}}-${{env.BASE_BRANCH}}-${{github.ref}}
+            ${{matrix.cache-name}}-${{env.BASE_BRANCH}}
+
       - name: Set up Python 3.x
         uses: actions/setup-python@v2
         with:
@@ -83,18 +98,19 @@ jobs:
           python -m pip install scons
           python --version
           scons --version
+
       - name: Compilation
         env:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
-          BUILD_NAME: 'SP'
+          BUILD_NAME: "SP"
         run: |
-          scons platform=macos target=template_debug extra_suffix=SP
-          scons platform=macos target=template_release extra_suffix=SP
+          scons platform=macos target=${{ matrix.target }} extra_suffix=SP
+
       - name: Prepare artifact
         run: |
           strip bin/godot.*
           chmod +x bin/godot.*
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{github.job}}
+          name: ${{matrix.cache-name}}
           path: bin

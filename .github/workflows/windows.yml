@@ -15,15 +15,32 @@ env:
   SCONS_CACHE_LIMIT: 7168
 
 jobs:
-  windows-editor:
+  windows-builds:
     runs-on: "windows-latest"
-    name: Windows Editor
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows Editor
+            cache-name: windows-editor
+            target: editor
+
+          - name: Windows Template Debug
+            cache-name: windows-template-debug
+            target: template_debug
+
+          - name: Windows Template Release
+            cache-name: windows-template-release
+            target: template_release
+
     steps:
       - name: Checkout Godot
         uses: actions/checkout@v3
         with:
           repository: godotengine/godot
           ref: master
+
       - name: Checkout LuaAPI
         uses: actions/checkout@v3
         with:
@@ -31,12 +48,14 @@ jobs:
           ref: main
           submodules: recursive
           path: modules/luaAPI
+
       - name: Checkout Voxel
         uses: actions/checkout@v3
         with:
           repository: Zylann/godot_voxel
           ref: master
           path: modules/voxel
+
       - name: Checkout GodotSteam
         uses: actions/checkout@v3
         with:
@@ -51,22 +70,22 @@ jobs:
       - name: Checkout SteamWorks SDK
         uses: actions/checkout@v3
         with:
-          lfs: 'true'
+          lfs: "true"
           repository: ${{ secrets.steamworks_sdk_repo }}
           ref: master
           token: ${{ secrets.steamworks_sdk_repo_token }}
           path: modules/godotsteam/sdk
 
       - name: Load .scons_cache directory
-        id: windows-editor-cache
         uses: RevoluPowered/cache@v2.1
         with:
           path: /.scons_cache/
-          key: ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+          key: ${{matrix.cache-name}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
           restore-keys: |
-            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
-            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}
-            ${{github.job}}-${{env.BASE_BRANCH}}
+            ${{matrix.cache-name}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+            ${{matrix.cache-name}}-${{env.BASE_BRANCH}}-${{github.ref}}
+            ${{matrix.cache-name}}-${{env.BASE_BRANCH}}
+
       - name: Set up Python 3.x
         uses: actions/setup-python@v2
         with:
@@ -79,94 +98,18 @@ jobs:
           python -m pip install scons pywin32
           python --version
           scons --version
+
       - name: Compilation
         env:
           SCONS_CACHE: /.scons_cache/
-          BUILD_NAME: 'SP'
+          BUILD_NAME: "SP"
         run: |
-          scons platform=windows target=editor extra_suffix=SP
+          scons platform=windows target=${{ matrix.target }} extra_suffix=SP
+
       - name: Prepare artifact
         run: |
           Remove-Item bin/* -Include *.exp,*.lib,*.pdb -Force
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{github.job}}
-          path: bin/*
-
-  windows-templates:
-    runs-on: "windows-latest"
-    name: Windows Templates
-    steps:
-      - name: Checkout Godot
-        uses: actions/checkout@v3
-        with:
-          repository: godotengine/godot
-          ref: master
-      - name: Checkout LuaAPI
-        uses: actions/checkout@v3
-        with:
-          repository: WeaselGames/godot_luaAPI
-          ref: main
-          submodules: recursive
-          path: modules/luaAPI
-      - name: Checkout Voxel
-        uses: actions/checkout@v3
-        with:
-          repository: Zylann/godot_voxel
-          ref: master
-          path: modules/voxel
-      - name: Checkout GodotSteam
-        uses: actions/checkout@v3
-        with:
-          repository: Gramps/GodotSteam
-          ref: godot4
-          path: modules/godotsteam
-
-      - name: Delete SDK Folder
-        run: |
-          Remove-Item 'modules/godotsteam/sdk' -Recurse
-
-      - name: Checkout SteamWorks SDK
-        uses: actions/checkout@v3
-        with:
-          repository: ${{ secrets.steamworks_sdk_repo }}
-          ref: master
-          token: ${{ secrets.steamworks_sdk_repo_token }}
-          path: modules/godotsteam/sdk
-
-      - name: Load .scons_cache directory
-        id: windows-templates-cache
-        uses: RevoluPowered/cache@v2.1
-        with:
-          path: /.scons_cache/
-          key: ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
-          restore-keys: |
-            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
-            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}
-            ${{github.job}}-${{env.BASE_BRANCH}}
-      - name: Set up Python 3.x
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.x"
-          architecture: "x64"
-
-      - name: Configuring Python packages
-        run: |
-          python -c "import sys; print(sys.version)"
-          python -m pip install scons pywin32
-          python --version
-          scons --version
-      - name: Compilation
-        env:
-          SCONS_CACHE: /.scons_cache/
-          BUILD_NAME: 'SP'
-        run: |
-          scons platform=windows target=template_debug extra_suffix=SP
-          scons platform=windows target=template_release extra_suffix=SP
-      - name: Prepare artifact
-        run: |
-          Remove-Item bin/* -Include *.exp,*.lib,*.pdb -Force
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{github.job}}
+          name: ${{matrix.cache-name}}
           path: bin/*
