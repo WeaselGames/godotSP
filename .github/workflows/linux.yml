@@ -14,15 +14,32 @@ env:
   SCONS_CACHE_LIMIT: 7168
 
 jobs:
-  linux-editor:
+  linux-builds:
     runs-on: "ubuntu-20.04"
-    name: Linux Editor
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux Editor
+            cache-name: linux-editor
+            target: editor
+
+          - name: Linux Template Debug
+            cache-name: linux-template-debug
+            target: template_debug
+
+          - name: Linux Template Release
+            cache-name: linux-template-release
+            target: template_release
+
     steps:
       - name: Checkout Godot
         uses: actions/checkout@v3
         with:
           repository: godotengine/godot
           ref: master
+
       - name: Checkout LuaAPI
         uses: actions/checkout@v3
         with:
@@ -30,12 +47,14 @@ jobs:
           ref: main
           submodules: recursive
           path: modules/luaAPI
+
       - name: Checkout Voxel
         uses: actions/checkout@v3
         with:
           repository: Zylann/godot_voxel
           ref: master
           path: modules/voxel
+
       - name: Checkout GodotSteam
         uses: actions/checkout@v3
         with:
@@ -50,7 +69,7 @@ jobs:
       - name: Checkout SteamWorks SDK
         uses: actions/checkout@v3
         with:
-          lfs: 'true'
+          lfs: "true"
           repository: ${{ secrets.steamworks_sdk_repo }}
           ref: master
           token: ${{ secrets.steamworks_sdk_repo_token }}
@@ -66,16 +85,17 @@ jobs:
           rm -f x86_64-godot-linux-gnu_sdk-buildroot.tar.bz2
           cd x86_64-godot-linux-gnu_sdk-buildroot
           ./relocate-sdk.sh
+
       - name: Load .scons_cache directory
-        id: linux-editor-cache
         uses: actions/cache@v2
         with:
           path: ${{github.workspace}}/.scons_cache/
-          key: ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+          key: ${{matrix.cache-name}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
           restore-keys: |
-            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
-            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}
-            ${{github.job}}-${{env.BASE_BRANCH}}
+            ${{matrix.cache-name}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
+            ${{matrix.cache-name}}-${{env.BASE_BRANCH}}-${{github.ref}}
+            ${{matrix.cache-name}}-${{env.BASE_BRANCH}}
+
       - name: Set up Python 3.x
         uses: actions/setup-python@v2
         with:
@@ -88,109 +108,20 @@ jobs:
           python -m pip install scons
           python --version
           scons --version
+
       - name: Compilation
         env:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
-          BUILD_NAME: 'SP'
+          BUILD_NAME: "SP"
         run: |
           echo /x86_64-godot-linux-gnu_sdk-buildroot >> $GITHUB_PATH
-          scons platform=linux target=editor extra_suffix=SP
+          scons platform=linux target=${{ matrix.target }} extra_suffix=SP
+
       - name: Prepare artifact
         run: |
           strip bin/godot.*
           chmod +x bin/godot.*
       - uses: actions/upload-artifact@v2
         with:
-          name: ${{github.job}}
-          path: bin/*
-
-  linux-templates:
-    runs-on: "ubuntu-20.04"
-    name: Linux Templates
-    steps:
-      - name: Checkout Godot
-        uses: actions/checkout@v3
-        with:
-          repository: godotengine/godot
-          ref: master
-      - name: Checkout LuaAPI
-        uses: actions/checkout@v3
-        with:
-          repository: WeaselGames/godot_luaAPI
-          ref: main
-          submodules: recursive
-          path: modules/luaAPI
-      - name: Checkout Voxel
-        uses: actions/checkout@v3
-        with:
-          repository: Zylann/godot_voxel
-          ref: master
-          path: modules/voxel
-      - name: Checkout GodotSteam
-        uses: actions/checkout@v3
-        with:
-          repository: Gramps/GodotSteam
-          ref: master
-          path: modules/godotsteam
-
-      - name: Delete SDK Folder
-        run: |
-          rm -rf modules/godotsteam/sdk
-
-      - name: Checkout SteamWorks SDK
-        uses: actions/checkout@v3
-        with:
-          lfs: 'true'
-          repository: ${{ secrets.steamworks_sdk_repo }}
-          ref: master
-          token: ${{ secrets.steamworks_sdk_repo_token }}
-          path: modules/godotsteam/sdk
-
-      # Install all packages except SCons
-      - name: Configure dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install yasm
-          curl -LO https://downloads.tuxfamily.org/godotengine/toolchains/linux/2021-02-11/x86_64-godot-linux-gnu_sdk-buildroot.tar.bz2
-          tar xf x86_64-godot-linux-gnu_sdk-buildroot.tar.bz2
-          rm -f x86_64-godot-linux-gnu_sdk-buildroot.tar.bz2
-          cd x86_64-godot-linux-gnu_sdk-buildroot
-          ./relocate-sdk.sh
-      - name: Load .scons_cache directory
-        id: linux-template-cache
-        uses: actions/cache@v2
-        with:
-          path: ${{github.workspace}}/.scons_cache/
-          key: ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
-          restore-keys: |
-            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}-${{github.sha}}
-            ${{github.job}}-${{env.BASE_BRANCH}}-${{github.ref}}
-            ${{github.job}}-${{env.BASE_BRANCH}}
-      - name: Set up Python 3.x
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.x"
-          architecture: "x64"
-
-      - name: Configuring Python packages
-        run: |
-          python -c "import sys; print(sys.version)"
-          python -m pip install scons
-          python --version
-          scons --version
-      - name: Compilation
-        env:
-          SCONS_CACHE: ${{github.workspace}}/.scons_cache/
-          BUILD_NAME: 'SP'
-        run: |
-          scons platform=linux target=template_debug extra_suffix=SP
-          scons platform=linux target=template_release extra_suffix=SP
-      - name: Prepare artifact
-        run: |
-          echo /x86_64-godot-linux-gnu_sdk-buildroot >> $GITHUB_PATH
-          strip bin/godot.*
-          chmod +x bin/godot.*
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{github.job}}
+          name: ${{matrix.cache-name}}
           path: bin/*
