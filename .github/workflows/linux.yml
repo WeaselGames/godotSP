@@ -60,8 +60,12 @@ jobs:
       - name: Configure dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install build-essential pkg-config libx11-dev libxcursor-dev \
-            libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm
+          sudo apt-get install yasm
+          curl -LO https://downloads.tuxfamily.org/godotengine/toolchains/linux/2021-02-11/x86_64-godot-linux-gnu_sdk-buildroot.tar.bz2
+          tar xf x86_64-godot-linux-gnu_sdk-buildroot.tar.bz2
+          rm -f x86_64-godot-linux-gnu_sdk-buildroot.tar.bz2
+          cd x86_64-godot-linux-gnu_sdk-buildroot
+          ./relocate-sdk.sh
       - name: Load .scons_cache directory
         id: linux-editor-cache
         uses: actions/cache@v2
@@ -89,6 +93,7 @@ jobs:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
           BUILD_NAME: 'SP'
         run: |
+          echo /x86_64-godot-linux-gnu_sdk-buildroot >> $GITHUB_PATH
           scons platform=linux target=editor extra_suffix=SP
       - name: Prepare artifact
         run: |
@@ -145,8 +150,12 @@ jobs:
       - name: Configure dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install build-essential pkg-config libx11-dev libxcursor-dev \
-            libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm
+          sudo apt-get install yasm
+          curl -LO https://downloads.tuxfamily.org/godotengine/toolchains/linux/2021-02-11/x86_64-godot-linux-gnu_sdk-buildroot.tar.bz2
+          tar xf x86_64-godot-linux-gnu_sdk-buildroot.tar.bz2
+          rm -f x86_64-godot-linux-gnu_sdk-buildroot.tar.bz2
+          cd x86_64-godot-linux-gnu_sdk-buildroot
+          ./relocate-sdk.sh
       - name: Load .scons_cache directory
         id: linux-template-cache
         uses: actions/cache@v2
@@ -178,6 +187,7 @@ jobs:
           scons platform=linux target=template_release extra_suffix=SP
       - name: Prepare artifact
         run: |
+          echo /x86_64-godot-linux-gnu_sdk-buildroot >> $GITHUB_PATH
           strip bin/godot.*
           chmod +x bin/godot.*
       - uses: actions/upload-artifact@v2
