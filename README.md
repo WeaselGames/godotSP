@@ -13,5 +13,5 @@ This is our custom build of the godot engine meant for internal use thus not doc
 - [Windows Template Release](https://nightly.link/WeaselGames/godotSP/workflows/windows/master/windows-template-release.zip)
 
 #### macOS:
-- [macOS Template Debug](https://nightly.link/WeaselGames/godotSP/workflows/macos/master/macos-template-debug.zip)
-- [macOS Template Release](https://nightly.link/WeaselGames/godotSP/workflows/macos/master/macos-template-release.zip)
+- [macOS Editor](https://nightly.link/WeaselGames/godotSP/workflows/macos/master/macos-editor-sp.zip)
+- [macOS Template (Debug and Release)](https://nightly.link/WeaselGames/godotSP/workflows/macos/master/macos-template-sp.zip)
