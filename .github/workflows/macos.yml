@@ -40,7 +40,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: godotengine/godot
-          ref: 7e79aead99a53ee7cdf383add9a6a2aea4f15beb
+          ref: e0de3573f3fc86062763152f5a1ac62f5a986da3
 
       - name: Checkout LuaAPI
         uses: actions/checkout@v3
