@@ -114,6 +114,9 @@ jobs:
       - name: Prepare artifact
         run: |
           Remove-Item bin/* -Include *.exp,*.lib,*.pdb -Force
+          Copy-Item "modules/godotsteam/sdk/bin/steam_api64.dll" -Destination "bin/steam_api64.dll" -Recurse
+          New-Item bin/steam_appid.txt
+          Set-Content bin/steam_appid.txt "480"
       - uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.cache-name}}

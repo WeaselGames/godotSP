@@ -126,6 +126,8 @@ jobs:
         run: |
           strip bin/godot.*
           chmod +x bin/godot.*
+          cp modules/godotsteam/sdk/redistributable_bin/linux64/libsteam_api.so bin/libsteam_api.so
+          echo "480" > bin/steam_appid.txt
       - uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.cache-name}}
