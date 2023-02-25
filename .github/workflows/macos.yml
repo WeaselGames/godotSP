@@ -134,6 +134,8 @@ jobs:
           mkdir -p app/GodotSP.app/Contents/MacOS
           cp bin/godot.macos.editor.universal app/GodotSP.app/Contents/MacOS/godot.macos.editor.universal
           chmod +x app/GodotSP.app/Contents/MacOS/godot.macos.editor.universal
+          cp modules/godotsteam/sdk/redistributable_bin/osx/libsteam_api.dylib app/GodotSP.app/Contents/MacOS/libsteam_api.dylib
+          echo "480" > app/GodotSP.app/Contents/MacOS/steam_appid.txt
 
       - name: Bundle architectures and pack (template)
         if: ${{ matrix.template }}
@@ -148,6 +150,8 @@ jobs:
           cp bin/godot.macos.template_release.universal app/macos_template.app/Contents/MacOS/godot.macos.template_release.universal
           chmod +x app/macos_template.app/Contents/MacOS/godot.macos.template_debug.universal
           chmod +x app/macos_template.app/Contents/MacOS/godot.macos.template_release.universal
+          cp modules/godotsteam/sdk/redistributable_bin/osx/libsteam_api.dylib app/macos_template.app/Contents/MacOS/libsteam_api.dylib
+          echo "480" > app/macos_template.app/Contents/MacOS/steam_appid.txt
 
       - name: Prepare artifact
         uses: actions/upload-artifact@v2
