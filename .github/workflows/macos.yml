@@ -40,7 +40,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: WeaselGames/godot
-          ref: "4.0"
+          ref: 2109b77eed825a6b6325d9f45e9c75b900f65719
 
       - name: Checkout LuaAPI
         uses: actions/checkout@v3
